@@ -5,8 +5,15 @@
 
 //double operator* ( float a, double b ) { return double(a) * b; };
 
+const std::complex<double> operator+(float a, const std::complex<double> b ) { return std::complex<double>(a) + b; };
+
+
 int main( int argc, char ** argv)
 {
+    using namespace madness;
+
+    //add<std::complex<double>, float >( std::complex<double>(0,0), 0.0f );
+    //add<std::complex<float>, int >();
     Vector<std::complex<double>, false> a(10);
     Vector<double, false> b(10);
     Vector<std::complex<double>, false> c(10);
@@ -19,7 +26,7 @@ int main( int argc, char ** argv)
     }
 
     std::cout << "add: " << std::endl;
-    Vector<std::complex<double>,false> d = 10 * b + a - c*b;
+    Vector<std::complex<double>,false> d = b + 10. * a - c*b;
 
     for (const auto& it : d)
         std::cout << " " << it << std::endl;

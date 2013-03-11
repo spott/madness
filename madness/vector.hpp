@@ -4,6 +4,7 @@
 #include <algorithm>
 #include "madness/types.hpp"
 
+namespace madness {
 
 template <typename T, bool SO>
 struct Vector
@@ -108,3 +109,5 @@ public:
     };
 
 };
+
+}
