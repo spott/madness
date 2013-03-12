@@ -12,7 +12,8 @@ struct VectorExpression < Operation, Va >
 {
     friend Va;
     typedef VectorExpression< Operation, Va>  This;
-    typedef typename Va::ValueType            ValueType;
+
+    typedef Conditional< is_vector_type< unqualified<Va> >, typename Va::ValueType, Va>     ValueType;
     const Operation& op;
     const Va& vector;
 
@@ -25,13 +26,13 @@ struct VectorExpression < Operation, Va >
         return vector.size();
     };
 
-    inline auto operator[]( size_t i ) const 
-        ->decltype( vector[i] ) {
+    template <typename T = Va, enable_if< is_vector_type< unqualified<T> >::value, void >... >
+    inline auto operator[]( size_t i ) const -> decltype( vector[i] ) {
         return vector[i];
         };
 
-    inline auto operator[]( size_t i ) const 
-        ->decltype( vector ) {
+    template <typename T = Va, disable_if< is_vector_type< unqualified<T> >::value, void >... >
+    inline auto operator[]( size_t i ) const -> decltype( vector ) {
         return vector;
         };
 };
@@ -44,7 +45,8 @@ struct VectorExpression <Operation, Va, Vs...> : protected VectorExpression< Ope
     const Va& vector;
     typedef VectorExpression< Operation, Va, Vs...>     This;
     typedef VectorExpression< Operation, Vs... >        Base;
-    typedef decltype( op( typename Va::ValueType(), typename Base::ValueType() ) )    ValueType;
+    typedef Conditional< is_vector_type< unqualified<Va> >, typename Va::ValueType, Va>     VaType;
+    typedef decltype( op( VaType(), typename Base::ValueType() ) )    ValueType;
 
 
     inline VectorExpression ( Operation oper, const Va& first, const Vs&... vs ) : 
@@ -57,14 +59,24 @@ struct VectorExpression <Operation, Va, Vs...> : protected VectorExpression< Ope
         return vector.size();
     };
 
+    template <typename T = Va, enable_if< is_vector_type< unqualified<T> >::value, void >... >
     inline auto operator[]( size_t i ) const
-        ->decltype( op( vector[i], this->Base::operator[](i) ) ) {
+        ->decltype( op( 
+                    vector[i] , 
+                    this->Base::operator[](i) 
+                    ) 
+                ) {
         return op( vector[i], Base::operator[](i) );
         };
 
+    template <typename T = Va, disable_if< is_vector_type< unqualified<T> >::value, void >... >
     inline auto operator[]( size_t i ) const
-        ->decltype( op( vector, this->Base::operator[](i) ) ) {
-        return op( vector, Base::operator[](i) );
+        ->decltype( op( 
+                    vector, 
+                    this->Base::operator[](i)
+                    ) ) {
+            static_assert( !is_vector_type< Va >::value, "vector isn't a vector type... " );
+            return op( vector, Base::operator[](i) );
         };
 };
 
@@ -108,22 +120,22 @@ inline operator-( const T& rhs, const T2& lhs )
 };
 
 template < typename T, typename T2 >
-inline VectorExpression< 
+inline auto operator*( const T& rhs, const T2& lhs ) 
+    -> typename VectorExpression< 
             mult< 
-                typename std::conditional< std::is_arithmetic<T>::value, T, typename T::ValueType>::type, 
-                typename std::conditional< std::is_arithmetic<T2>::value, T2, typename T2::ValueType>::type
+                Conditional< is_vector_type< unqualified<T>  >, typename T::ValueType , T >, 
+                Conditional< is_vector_type< unqualified<T2> >, typename T2::ValueType, T2>
             >, T, T2>
-operator*( const T& rhs, const T2& lhs ) 
 {
     return 
         VectorExpression< 
             mult< 
-                typename std::conditional< std::is_arithmetic<T>::value, T, typename T::ValueType>::type, 
-                typename std::conditional< std::is_arithmetic<T2>::value, T2, typename T2::ValueType>::type 
+                Conditional< is_vector_type< unqualified<T>  >, typename T::ValueType , T >, 
+                Conditional< is_vector_type< unqualified<T2> >, typename T2::ValueType, T2>
             >, T, T2 >
                 ( mult< 
-                      typename std::conditional< std::is_arithmetic<T>::value, T, typename T::ValueType>::type, 
-                      typename std::conditional< std::is_arithmetic<T2>::value, T2, typename T2::ValueType>::type 
+                    Conditional< is_vector_type< unqualified<T>  >, typename T::ValueType , T >, 
+                    Conditional< is_vector_type< unqualified<T2> >, typename T2::ValueType, T2>
                   >(), rhs, lhs );
 };
 
