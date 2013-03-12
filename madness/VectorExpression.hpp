@@ -121,11 +121,11 @@ inline operator-( const T& rhs, const T2& lhs )
 
 template < typename T, typename T2 >
 inline auto operator*( const T& rhs, const T2& lhs ) 
-    -> typename VectorExpression< 
+    -> decltype( VectorExpression< 
             mult< 
-                Conditional< is_vector_type< unqualified<T>  >, typename T::ValueType , T >, 
-                Conditional< is_vector_type< unqualified<T2> >, typename T2::ValueType, T2>
-            >, T, T2>
+                Conditional< is_vector_type< unqualified< T >  >, typename T::ValueType , T >, 
+                Conditional< is_vector_type< unqualified< T2 > >, typename T2::ValueType, T2>
+            >, T, T2>() )
 {
     return 
         VectorExpression< 

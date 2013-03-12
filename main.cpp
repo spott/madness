@@ -29,17 +29,18 @@ int main( int argc, char ** argv)
     }
 
     std::cout << "add: " << std::endl;
-    Vector<std::complex<double>,false> d = b + std::complex<double>(10.) * a - c * b;
+    Vector<std::complex<double>, false> d = 1. * b;
+    //Vector<std::complex<double>,false> d = b + std::complex<double>(10.) * a - c * b;
 
     for (const auto& it : d)
         std::cout << " " << it << std::endl;
-    std::cout << "sub: " << std::endl;
-    d = b - a;
-    for (const auto& it : d)
-        std::cout << " " << it << std::endl;
-    std::cout << "mult: " << std::endl;
-    d = b * a;
-    for (const auto& it : d)
-        std::cout << " " << it << std::endl;
+    //std::cout << "sub: " << std::endl;
+    //d = b - a;
+    //for (const auto& it : d)
+        //std::cout << " " << it << std::endl;
+    //std::cout << "mult: " << std::endl;
+    //d = b * a;
+    //for (const auto& it : d)
+        //std::cout << " " << it << std::endl;
 }
 
