@@ -10,133 +10,146 @@ namespace madness {
 template < typename Operation, typename Va>
 struct VectorExpression < Operation, Va >
 {
+public:
     friend Va;
-    typedef VectorExpression< Operation, Va>  This;
+    constexpr static const Operation& op = Operation();
 
-    typedef Conditional< is_vector_type< unqualified<Va> >, typename Va::ValueType, Va>     ValueType;
-    const Operation& op;
     const Va& vector;
+    typedef VectorExpression< Operation, Va>  This;
+    typedef typename base_type< Va >::type ValueType;
 
-    inline VectorExpression ( Operation oper, const Va& first) : 
-        op(oper), 
-        vector(first) 
-    {};
 
-    inline auto size() const ->decltype( vector.size() ) {
-        return vector.size();
-    };
+private:
+    template <typename T = Va, typename R = unqualified<decltype( std::declval<T>()[0] )> >
+    inline const R subscript_helper(size_t i, int) const { return vector[i]; }
 
-    template <typename T = Va, enable_if< is_vector_type< unqualified<T> >::value, void >... >
-    inline auto operator[]( size_t i ) const -> decltype( vector[i] ) {
-        return vector[i];
-        };
+    inline const Va subscript_helper(size_t i, ...) const { return vector; }
 
-    template <typename T = Va, disable_if< is_vector_type< unqualified<T> >::value, void >... >
-    inline auto operator[]( size_t i ) const -> decltype( vector ) {
-        return vector;
-        };
+    template <typename T = Va, typename R = decltype(std::declval<T>().size() )>
+    inline const R size_helper(int) const { return vector.size(); }
+
+public:
+    inline VectorExpression ( const Va& first) : 
+        vector(first) {}
+
+    inline auto size() const -> decltype( this->size_helper( 0 ) ) {
+        return size_helper(0);
+    }
+
+    inline auto operator[]( size_t i ) const -> decltype( this->subscript_helper(0,0) ) {
+        return subscript_helper(i,0);
+    }
 };
 
 template < typename Operation, typename Va, typename ... Vs>
 struct VectorExpression <Operation, Va, Vs...> : protected VectorExpression< Operation, Vs...>
 {
+public:
     friend Va;
-    const Operation op;
+    constexpr static const Operation op = Operation();
     const Va& vector;
     typedef VectorExpression< Operation, Va, Vs...>     This;
     typedef VectorExpression< Operation, Vs... >        Base;
-    typedef Conditional< is_vector_type< unqualified<Va> >, typename Va::ValueType, Va>     VaType;
-    typedef decltype( op( VaType(), typename Base::ValueType() ) )    ValueType;
+    typedef typename base_type< Va >::type              VaType;
 
+    typedef decltype( std::declval<Operation>()( VaType() , typename Base::ValueType() ) ) ValueType;
 
-    inline VectorExpression ( Operation oper, const Va& first, const Vs&... vs ) : 
-        VectorExpression< Operation, Vs...>(oper, vs...), 
-        op(oper), 
-        vector(first) 
-    {};
+private:
+    template <typename T = Va, typename R = unqualified<decltype( std::declval<T>()[0] )> >
+    inline const R & subscript_helper(size_t i, int) const { return vector[i]; }
 
-    inline auto size() const ->decltype( vector.size() ) {
-        return vector.size();
-    };
+    inline const Va& subscript_helper(size_t i, ...) const { return vector; }
 
-    template <typename T = Va, enable_if< is_vector_type< unqualified<T> >::value, void >... >
-    inline auto operator[]( size_t i ) const
-        ->decltype( op( 
-                    vector[i] , 
-                    this->Base::operator[](i) 
-                    ) 
-                ) {
-        return op( vector[i], Base::operator[](i) );
-        };
+    template < typename T = Va, typename R = decltype(std::declval<T>().size() ) >
+    inline R size_helper(int) const { return vector.size(); }
 
-    template <typename T = Va, disable_if< is_vector_type< unqualified<T> >::value, void >... >
-    inline auto operator[]( size_t i ) const
-        ->decltype( op( 
-                    vector, 
-                    this->Base::operator[](i)
-                    ) ) {
-            static_assert( !is_vector_type< Va >::value, "vector isn't a vector type... " );
-            return op( vector, Base::operator[](i) );
-        };
+    inline auto size_helper(...) const -> decltype(this->Base::size()) { return Base::size(); }
+
+public:
+    inline VectorExpression ( const Va& first, const Vs&... vs ) : 
+        VectorExpression< Operation, Vs...>(vs...), 
+        vector(first) {}
+
+    inline auto size() const ->decltype( this->size_helper(0) ) {
+        return size_helper(0);
+    }
+
+    inline const ValueType operator[]( size_t i ) const {
+        return op( subscript_helper(i,0), Base::operator[](i) );
+    }
 };
 
 
 template < typename R, typename L >
 struct add {
-inline auto operator()( const R& a, const L& b) const -> decltype( R() + L() )
-{
+inline auto operator()( const R& a, const L& b) const -> decltype( R() + L() ) {
     return a + b;
 }};
 
 template < typename R, typename L >
 struct sub {
-inline auto operator()( const R& a, const L& b) const -> decltype( R() - L() )
-{
+inline auto operator()( const R& a, const L& b) const -> decltype( R() - L() ) {
     return a - b;
 }};
 
 template < typename R, typename L >
 struct mult {
-inline auto operator()( const R& a, const L& b) const -> decltype( R() * L() )
-{
+inline auto operator()( const R& a, const L& b) const -> decltype( R() * L() ) {
     return a * b;
 }};
 
 //Add using VectorExpression:
-template < typename T, typename T2 >
-VectorExpression< add < typename T::ValueType, typename T2::ValueType >, T, T2>
-inline operator+( const T& rhs, const T2& lhs ) 
-{
-    return VectorExpression<  add< typename T::ValueType, typename T2::ValueType >, T, T2 >
-        ( add< typename T::ValueType, typename T2::ValueType >() , rhs, lhs );
+template < typename LHS, typename RHS, 
+           typename LHS_TYPE = unqualified< typename LHS::ValueType >,
+           typename RHS_TYPE = unqualified< typename RHS::ValueType > >
+VectorExpression< add < LHS_TYPE , RHS_TYPE>, LHS, RHS>
+inline operator+( const LHS& lhs, const RHS& rhs ) {
+    return VectorExpression<  add< LHS_TYPE, RHS_TYPE >, LHS, RHS >
+        ( lhs, rhs );
 };
 
-template < typename T, typename T2 >
-VectorExpression< sub< typename T::ValueType, typename T2::ValueType >, T, T2>
-inline operator-( const T& rhs, const T2& lhs ) 
-{
-    return VectorExpression<  sub< typename T::ValueType, typename T2::ValueType >, T, T2 >
-        ( sub< typename T::ValueType, typename T2::ValueType >() , rhs, lhs );
+template < typename LHS, typename RHS, 
+           typename LHS_TYPE = unqualified< typename LHS::ValueType >,
+           typename RHS_TYPE = unqualified< typename RHS::ValueType > >
+VectorExpression< sub < LHS_TYPE , RHS_TYPE>, LHS, RHS>
+inline operator-( const LHS& lhs, const RHS& rhs ) {
+    return VectorExpression<  sub< LHS_TYPE, RHS_TYPE >, LHS, RHS >
+        ( lhs, rhs );
 };
 
-template < typename T, typename T2 >
-inline auto operator*( const T& rhs, const T2& lhs ) 
-    -> decltype( VectorExpression< 
-            mult< 
-                Conditional< is_vector_type< unqualified< T >  >, typename T::ValueType , T >, 
-                Conditional< is_vector_type< unqualified< T2 > >, typename T2::ValueType, T2>
-            >, T, T2>() )
+template < typename RHS, typename LHS, 
+           typename LHS_TYPE = unqualified< typename LHS::ValueType >,
+           typename RHS_TYPE = unqualified< typename RHS::ValueType > >
+inline auto operator*( const RHS& rhs, const LHS& lhs ) 
+    -> VectorExpression<mult< RHS_TYPE, LHS_TYPE >, RHS, LHS>
 {
     return 
-        VectorExpression< 
-            mult< 
-                Conditional< is_vector_type< unqualified<T>  >, typename T::ValueType , T >, 
-                Conditional< is_vector_type< unqualified<T2> >, typename T2::ValueType, T2>
-            >, T, T2 >
-                ( mult< 
-                    Conditional< is_vector_type< unqualified<T>  >, typename T::ValueType , T >, 
-                    Conditional< is_vector_type< unqualified<T2> >, typename T2::ValueType, T2>
-                  >(), rhs, lhs );
+        VectorExpression< mult< RHS_TYPE, LHS_TYPE >, RHS, LHS >
+                ( rhs, lhs );
+};
+
+template < typename RHS, typename LHS, 
+           typename RHS_TYPE = unqualified< typename RHS::ValueType >,
+           typename LHS_TYPE = unqualified< LHS > ,
+           disable_if< is_vector_type< unqualified<LHS> >::value, void>... >
+inline auto operator*( const RHS& rhs, const LHS& lhs ) 
+    -> VectorExpression<mult< RHS_TYPE, LHS_TYPE >, RHS, LHS>
+{
+    return 
+        VectorExpression< mult< RHS_TYPE, LHS_TYPE >, RHS, LHS >
+                (rhs, lhs );
+};
+
+template < typename RHS, typename LHS, 
+           typename RHS_TYPE = unqualified<RHS>,
+           typename LHS_TYPE = unqualified< typename LHS::ValueType  >,
+           disable_if< is_vector_type< unqualified<RHS> >::value, void>... >
+inline auto operator*( const RHS& rhs, const LHS& lhs )
+    -> VectorExpression< mult< RHS_TYPE, LHS_TYPE >, RHS, LHS>
+{
+    return 
+        VectorExpression< mult< RHS_TYPE, LHS_TYPE >, RHS, LHS >
+                (rhs, lhs );
 };
 
 }

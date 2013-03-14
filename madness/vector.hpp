@@ -29,20 +29,19 @@ public:
     };
 
     template <typename T2>
-    inline Vector( const Vector<T2, SO>& other ) : _size(other._size) {
+    inline Vector( const Vector<T2, SO>& rhs ) : _size(rhs.size() ) {
         _data = new T[_size];
         for(size_t i = 0; i < _size; ++i)
-            _data[i] = static_cast<T2>(other[i]);
+            _data[i] = static_cast<T2>(rhs[i]);
     };
 
     template<typename Operation, typename ... Ts>
-    inline Vector( const VectorExpression< Operation, Ts...>& rhs ) 
+    inline Vector( const VectorExpression< Operation, Ts...>& rhs ) : _size(rhs.size() )
     {
-        _size = rhs.size();
         _data = new T[_size];
 
         for(size_t i = 0; i < _size; i++)
-            _data[i] = static_cast<const T>(rhs[i]);
+            _data[i] = rhs[i];
     };
 
     ~Vector() {
@@ -74,8 +73,7 @@ public:
     //};
 
     template< typename T2>
-    inline This& operator=( const Vector<T2,SO>& rhs )
-    {
+    inline This& operator=( const Vector<T2,SO>& rhs ) {
         delete[] _data;
         this( rhs );
         return *this;
@@ -83,8 +81,7 @@ public:
 
     template< typename Operation, typename... Ts>
     inline This&
-    operator=( const VectorExpression< Operation, Ts...>& rhs ) 
-    {
+    operator=( const VectorExpression< Operation, Ts...>& rhs ) {
         delete[] _data;
         _size = rhs.size();
         _data = new T[_size];

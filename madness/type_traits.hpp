@@ -91,6 +91,18 @@ static_assert( is_vector_type<
                 > 
                >::value, "is_vector_type doesn't work on vectorexpressions" );
 static_assert( !is_vector_type< std::complex<double> >::value, "is_vector_type calls complex<doubles> vector_types" );
+static_assert( !is_vector_type< double >::value, "is_vector_type calls complex<doubles> vector_types" );
+
+template < typename V, typename = void>
+struct base_type { typedef V type; };
+template < typename V >
+struct base_type< V, 
+                 typename base_type<void, typename V::ValueType>::type > { 
+    typedef typename V::ValueType type; 
+};
+
+static_assert( std::is_same < typename base_type< Vector< double, false > >::type , double >::value, "base_type doesn't work" ); 
+static_assert( std::is_same < typename base_type< double >::type , double >::value, "base_type doesn't work" ); 
 
 
 }

@@ -1,4 +1,4 @@
-CC=g++-4.7
+CC=g++-4.8
 
 CPPFLAGS=-std=c++11 -I./ -Wall -O3
 LDFLAGS=
