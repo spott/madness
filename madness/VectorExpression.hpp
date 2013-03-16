@@ -20,20 +20,19 @@ public:
 
 
 private:
+    //SFINAE function for operator[]
     template <typename T = Va, typename R = unqualified<decltype( std::declval<T>()[0] )> >
     inline const R subscript_helper(size_t i, int) const { return vector[i]; }
 
     inline const Va subscript_helper(size_t i, ...) const { return vector; }
 
-    template <typename T = Va, typename R = decltype(std::declval<T>().size() )>
-    inline const R size_helper(int) const { return vector.size(); }
-
 public:
     inline VectorExpression ( const Va& first) : 
         vector(first) {}
 
-    inline auto size() const -> decltype( this->size_helper( 0 ) ) {
-        return size_helper(0);
+    template <typename T = Va, typename R = decltype(std::declval<T>().size() )>
+    inline const R size() const {
+        return vector.size();
     }
 
     inline auto operator[]( size_t i ) const -> decltype( this->subscript_helper(0,0) ) {
@@ -55,11 +54,13 @@ public:
     typedef decltype( std::declval<Operation>()( VaType() , typename Base::ValueType() ) ) ValueType;
 
 private:
+    //SFINAE function for operator[] (we want to call different versions if T is a scalar or vector type
     template <typename T = Va, typename R = unqualified<decltype( std::declval<T>()[0] )> >
     inline const R & subscript_helper(size_t i, int) const { return vector[i]; }
 
     inline const Va& subscript_helper(size_t i, ...) const { return vector; }
 
+    //SFINAE function for size() (we don't want to try to call size on a scalar...
     template < typename T = Va, typename R = decltype(std::declval<T>().size() ) >
     inline R size_helper(int) const { return vector.size(); }
 
@@ -79,7 +80,7 @@ public:
     }
 };
 
-
+// operators
 template < typename R, typename L >
 struct add {
 inline auto operator()( const R& a, const L& b) const -> decltype( R() + L() ) {
@@ -98,7 +99,8 @@ inline auto operator()( const R& a, const L& b) const -> decltype( R() * L() ) {
     return a * b;
 }};
 
-//Add using VectorExpression:
+//overloads:  return a vector expression, and make sure the operator is templated on the base types 
+//(underlying type) not the Vector or VectorExpression types.
 template < typename LHS, typename RHS, 
            typename LHS_TYPE = unqualified< typename LHS::ValueType >,
            typename RHS_TYPE = unqualified< typename RHS::ValueType > >
@@ -117,6 +119,7 @@ operator-( const LHS& lhs, const RHS& rhs ) {
         ( lhs, rhs );
 }
 
+//Overloads for mult.  We can mult with scalars, so we need to SFINAE this for scalar on the left or right.
 template < typename RHS, typename LHS, 
            typename LHS_TYPE = unqualified< typename LHS::ValueType >,
            typename RHS_TYPE = unqualified< typename RHS::ValueType > >

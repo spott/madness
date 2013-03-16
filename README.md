@@ -39,5 +39,7 @@ Vectors have `begin` and `end` functions, with iterators: you can iterate over a
     for ( auto it = c.begin(); it < c.end(); ++it)
         *it = 10; //set all elements to 10;
 
-
+Internals (aka learning what I did)
+------
+Start with the `VectorExpression.hpp` header, and use `type_traits.hpp` for all the type templates that aren't clear.
 
