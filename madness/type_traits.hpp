@@ -2,8 +2,8 @@
 
 #include<type_traits>
 #include "madness/types.hpp"
-#include "madness/Vector.hpp"
-#include "madness/VectorExpression.hpp"
+//#include "madness/Vector.hpp"
+//#include "madness/VectorExpression.hpp"
 
 namespace madness{
 
@@ -68,30 +68,11 @@ struct is_vector_expression : std::false_type { };
 template <typename T1, typename T2, typename...Ts>
 struct is_vector_expression< VectorExpression<T1,T2,Ts...> > : std::true_type { };
 
-static_assert( !is_vector_expression< Vector< double, false > >::value, "is_vector_expression doesn't work on vectors" );
-static_assert( is_vector_expression< 
-                VectorExpression< 
-                    mult<std::complex<double>, double>, 
-                    Vector<double, false>, 
-                    Vector<std::complex<double>, false>  
-                > 
-               >::value, "is_vector_type doesn't work on vectorexpressions" );
-static_assert( !is_vector_expression< std::complex<double> >::value, "is_vector_type calls complex<doubles> vector_types" );
 
 template <typename V>
 struct is_vector_type : 
     Conditional< any< is_vector<V>, is_vector_expression<V> >, std::true_type, std::false_type> { };
 
-static_assert( is_vector_type< Vector< double, false > >::value, "is_vector_expression doesn't work on vectors" );
-static_assert( is_vector_type< 
-                VectorExpression< 
-                    mult<std::complex<double>, double>, 
-                    Vector<double, false>, 
-                    Vector<std::complex<double>, false>  
-                > 
-               >::value, "is_vector_type doesn't work on vectorexpressions" );
-static_assert( !is_vector_type< std::complex<double> >::value, "is_vector_type calls complex<doubles> vector_types" );
-static_assert( !is_vector_type< double >::value, "is_vector_type calls complex<doubles> vector_types" );
 
 template < typename V, typename = void>
 struct base_type { typedef V type; };
@@ -101,8 +82,6 @@ struct base_type< V,
     typedef typename V::ValueType type; 
 };
 
-static_assert( std::is_same < typename base_type< Vector< double, false > >::type , double >::value, "base_type doesn't work" ); 
-static_assert( std::is_same < typename base_type< double >::type , double >::value, "base_type doesn't work" ); 
 
 
 }

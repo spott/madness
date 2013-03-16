@@ -2,8 +2,8 @@
 
 #include<complex>
 #include <type_traits>
-#include "madness/type_traits.hpp"
 #include "madness/types.hpp"
+#include "madness/type_traits.hpp"
 
 namespace madness {
 
@@ -12,7 +12,7 @@ struct VectorExpression < Operation, Va >
 {
 public:
     friend Va;
-    constexpr static const Operation& op = Operation();
+    constexpr static const Operation op = Operation();
 
     const Va& vector;
     typedef VectorExpression< Operation, Va>  This;
@@ -102,20 +102,20 @@ inline auto operator()( const R& a, const L& b) const -> decltype( R() * L() ) {
 template < typename LHS, typename RHS, 
            typename LHS_TYPE = unqualified< typename LHS::ValueType >,
            typename RHS_TYPE = unqualified< typename RHS::ValueType > >
-VectorExpression< add < LHS_TYPE , RHS_TYPE>, LHS, RHS>
-inline operator+( const LHS& lhs, const RHS& rhs ) {
+inline VectorExpression< add < LHS_TYPE , RHS_TYPE>, LHS, RHS>
+operator+( const LHS& lhs, const RHS& rhs ) {
     return VectorExpression<  add< LHS_TYPE, RHS_TYPE >, LHS, RHS >
         ( lhs, rhs );
-};
+}
 
 template < typename LHS, typename RHS, 
            typename LHS_TYPE = unqualified< typename LHS::ValueType >,
            typename RHS_TYPE = unqualified< typename RHS::ValueType > >
-VectorExpression< sub < LHS_TYPE , RHS_TYPE>, LHS, RHS>
-inline operator-( const LHS& lhs, const RHS& rhs ) {
+inline VectorExpression< sub < LHS_TYPE , RHS_TYPE>, LHS, RHS>
+operator-( const LHS& lhs, const RHS& rhs ) {
     return VectorExpression<  sub< LHS_TYPE, RHS_TYPE >, LHS, RHS >
         ( lhs, rhs );
-};
+}
 
 template < typename RHS, typename LHS, 
            typename LHS_TYPE = unqualified< typename LHS::ValueType >,
@@ -126,7 +126,7 @@ inline auto operator*( const RHS& rhs, const LHS& lhs )
     return 
         VectorExpression< mult< RHS_TYPE, LHS_TYPE >, RHS, LHS >
                 ( rhs, lhs );
-};
+}
 
 template < typename RHS, typename LHS, 
            typename RHS_TYPE = unqualified< typename RHS::ValueType >,
@@ -138,7 +138,7 @@ inline auto operator*( const RHS& rhs, const LHS& lhs )
     return 
         VectorExpression< mult< RHS_TYPE, LHS_TYPE >, RHS, LHS >
                 (rhs, lhs );
-};
+}
 
 template < typename RHS, typename LHS, 
            typename RHS_TYPE = unqualified<RHS>,
@@ -150,6 +150,6 @@ inline auto operator*( const RHS& rhs, const LHS& lhs )
     return 
         VectorExpression< mult< RHS_TYPE, LHS_TYPE >, RHS, LHS >
                 (rhs, lhs );
-};
+}
 
 }

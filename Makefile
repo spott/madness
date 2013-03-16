@@ -1,6 +1,6 @@
 CC=g++-4.7
 
-CPPFLAGS=-std=c++11 -I./ -Wall -O3
+CPPFLAGS=-std=c++11 -I./ -Wall -O3 -pedantic
 LDFLAGS=
 EXECUTABLE=main
 
