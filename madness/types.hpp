@@ -17,4 +17,13 @@ struct sub;
 template <typename T, bool SO >
 struct Vector;
 
+template <typename MatType, bool SO >
+struct Matrix {
+    typedef MatType type;
+}
+
+
+template <typename T, bool SO >
+struct SparseMatrix;
+
 }

@@ -5,6 +5,7 @@
 #include "madness/type_traits.hpp"
 #include "madness/Vector.hpp"
 #include "madness/VectorExpression.hpp"
+#include "madness/SparseMatrix.hpp"
 
 
 namespace madness {

@@ -7,12 +7,32 @@
 
 namespace madness {
 
+// operators
+template < typename R, typename L >
+struct add {
+inline auto operator()( const R& a, const L& b) const -> decltype( R() + L() ) {
+    return a + b;
+}};
+
+template < typename R, typename L >
+struct sub {
+inline auto operator()( const R& a, const L& b) const -> decltype( R() - L() ) {
+    return a - b;
+}};
+
+template < typename R, typename L >
+struct mult {
+inline auto operator()( const R& a, const L& b) const -> decltype( R() * L() ) {
+    return a * b;
+}};
+
+
 template < typename Operation, typename Va>
 struct VectorExpression < Operation, Va >
 {
 public:
     friend Va;
-    constexpr static const Operation op = Operation();
+    //constexpr static const Operation op = O;
 
     const Va& vector;
     typedef VectorExpression< Operation, Va>  This;
@@ -76,28 +96,13 @@ public:
     }
 
     inline const ValueType operator[]( size_t i ) const {
-        return op( subscript_helper(i,0), Base::operator[](i) );
+        return this->op( subscript_helper(i,0), Base::operator[](i) );
     }
 };
 
-// operators
-template < typename R, typename L >
-struct add {
-inline auto operator()( const R& a, const L& b) const -> decltype( R() + L() ) {
-    return a + b;
-}};
-
-template < typename R, typename L >
-struct sub {
-inline auto operator()( const R& a, const L& b) const -> decltype( R() - L() ) {
-    return a - b;
-}};
-
-template < typename R, typename L >
-struct mult {
-inline auto operator()( const R& a, const L& b) const -> decltype( R() * L() ) {
-    return a * b;
-}};
+//This is required to prevent the debug build from failing at linking... not sure why...
+template <typename Operation, typename Va, typename ... Vs>
+constexpr const Operation VectorExpression<Operation, Va, Vs...>::op;
 
 //overloads:  return a vector expression, and make sure the operator is templated on the base types 
 //(underlying type) not the Vector or VectorExpression types.

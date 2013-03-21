@@ -43,3 +43,10 @@ Internals (aka learning what I did)
 ------
 Start with the `VectorExpression.hpp` header, and use `type_traits.hpp` for all the type templates that aren't clear.
 
+
+TODO
+----
+
+* Make VectorExpression take a storage order, and obey it (multiplying a row by a column vector doesn't make much sense...)
+* Make VectorExpression take a Matrix...
+* Make a Matrix class

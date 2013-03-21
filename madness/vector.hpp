@@ -178,6 +178,16 @@ public:
         return *this;
     }
 
+    //dot product... need to put storage order into VectorExpressions...
+    template< typename T2 >
+    inline auto operator*( const Vector<T2, ! SO>& rhs ) ->const decltype( T() * T2() ) {
+        assert ( this->size() == rhs.size() );
+        auto tmp = _data[0] * rhs[0];
+        for (size_t i = 1; i < _size; ++i)
+            tmp += _data[i] * rhs[i];
+        return tmp;
+    }
+
     //template< typename T2, enable_if< is_vector_type< unqualified<T2> >::value, void > >
     template< typename T2 >
     inline bool operator==( const Vector< T2, SO> & rhs ) {
