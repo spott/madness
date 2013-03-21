@@ -8,8 +8,10 @@ EXECUTABLE=main
 SOURCES=main.cpp
 OBJECTS=$(SOURCES:.cpp=.o)
 
+.PHONY: all clean new
+
 all: $(SOURCES) $(EXECUTABLE)
-	
+
 $(EXECUTABLE): $(OBJECTS) 
 	$(CC) $(OBJECTS) $(LDFLAGS) -o $@
 
@@ -18,3 +20,5 @@ $(EXECUTABLE): $(OBJECTS)
 
 clean: 
 	    rm -rf *.o main
+
+new: clean all
