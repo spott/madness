@@ -1,3 +1,5 @@
+This is pretty much defunct... I haven't touched it in a while.  It was a fun project to screw around on though.
+
 madness
 =======
 
